@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Clone</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- Updated path -->
+</head>
+<body>
+    <div id="app">
+        <!-- Login/Registration Form -->
+        <div id="auth-container">
+            <h2>Login / Register</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+            <button id="registerButton">Register</button>
+        </div>
+
+        <!-- Chat Interface (Hidden by Default) -->
+        <div id="chat-container" style="display: none;">
+            <div class="sidebar">
+                <h2>Chats</h2>
+                <button id="createGroupButton">Create Group</button>
+                <div id="chat-list"></div>
+            </div>
+            <div class="chat-area">
+                <div id="messages"></div>
+                <div class="input-area">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button id="sendButton">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/script.js"></script> <!-- Updated path -->
+</body>
+</html>
