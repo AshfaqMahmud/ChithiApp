@@ -5,7 +5,9 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = createServer(app); // http server
-const io = new Server(server); // socket.io with http server
+const io = new Server(server, {
+  connectionStateRecovery: {}
+}); // socket.io with http server
 
 app.get("/hello", (req, res) => {
   // sending from server
