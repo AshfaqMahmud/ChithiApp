@@ -12,6 +12,7 @@ const chatList = document.getElementById('chat-list');
 
 let socket;
 let currentUser;
+let selectedUserId = null;
 
 // Connect to Socket.IO server
 function connectSocket() {
@@ -19,17 +20,49 @@ function connectSocket() {
 
     socket.on('connect', () => {
         console.log('Connected to server');
+
+        // register the user after connecting
+        socket.emit('register user', currentUser.userId);
+    });
+
+    // listen for updates to connected user list
+    socket.on('update user list', (users)=>{
+        console.log('Connected users:', users); // Debugging: Log the list of users
+        updateUserList(users);
     });
 
     // Listen for personal messages
     socket.on('personal message', (message) => {
-        addMessage(message.content, false);
+        if(message.sender === selectedUserId || message.receiver === selectedUserId) {
+            addMessage(message.content, message.sender === currentUser.userId);
+        }
     });
 
     // Listen for group messages
     socket.on('group message', (message) => {
         addMessage(message.content, false);
     });
+}
+
+// update the UI for user list 
+function updateUserList(users){
+    const chatList = document.getElementById('chat-list');
+    chatList.innerHTML= '';         // clear the list
+
+    users.forEach(userId=> {
+        if(userId !== currentUser.userId) {
+            // dont show the current user in the list
+            const userDiv = document.createElement('div');
+            userDiv.classList.add('chat-item');
+            userDiv.textContent= userId;    // replace with username if available
+            userDiv.addEventListener('click', ()=>{
+                selectedUserId = userId;
+                document.getElementById('message').innerHTML='';
+                document.querySelector('.chat-header h2').textContent = `Chat with ${userId}`;
+            });
+            chatList.appendChild(userDiv);
+        }
+    })
 }
 
 // Add a message to the chat UI
@@ -55,10 +88,13 @@ loginButton.addEventListener('click', async () => {
 
     const data = await response.json();
     if (response.ok) {
-        currentUser = { username, token: data.token };
+        currentUser = { username, token: data.token, userId: data.userId };
         authContainer.style.display = 'none';
         chatContainer.style.display = 'flex';
         connectSocket();
+
+        // Emit the "register user" event after connecting
+        socket.emit('register user', currentUser.userId);
     } else {
         alert(data.error);
     }
@@ -86,8 +122,12 @@ registerButton.addEventListener('click', async () => {
 // Send Message
 sendButton.addEventListener('click', () => {
     const message = messageInput.value.trim();
-    if (message) {
-        socket.emit('personal message', { senderId: currentUser.username, receiverId: 'otherUser', content: message });
+    if (message && selectedUserId) {
+        socket.emit('personal message', { 
+            senderId: currentUser.userId, 
+            receiverId: selectedUserId, 
+            content: message 
+        });
         addMessage(message, true);
         messageInput.value = '';
     }

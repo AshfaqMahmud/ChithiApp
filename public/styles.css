@@ -104,3 +104,24 @@ body {
 .input-area button:hover {
     background-color: #054d43;
 }
+.chat-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-item:hover {
+    background-color: #e9ecef;
+}
+
+.chat-header {
+    padding: 15px;
+    background-color: #075e54;
+    color: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 18px;
+}

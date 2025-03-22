@@ -10,6 +10,9 @@ const groupRoutes = require("./routes/group");
 const Message = require("./models/Message");
 const path = require('path');
 
+// track connected users : {socketId: userId}
+const connectedUsers = new Map();
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -36,6 +39,17 @@ mongoose.connect("mongodb://localhost:27017/chithiapp", {
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
+  // listen for user registration (when a use logs in)
+  socket.on('register user', (userId)=>{
+
+    console.log('User registered:', userId); // Debugging: Log the registered user
+
+    connectedUsers.set(socket.id, userId);   // mapping socket id to user id
+    
+    // send updated user list to all clients
+    io.emit('update user list', Array.from(connectedUsers.values()));
+  });
+
   // Listen for personal message
   socket.on("personal message", async (data) => {
     const { senderId, receiverId, content } = data;
@@ -51,7 +65,18 @@ io.on("connection", (socket) => {
         content 
     });
     await message.save();
-    io.to(receiverId).emit("personal message", message);
+
+    // find the receiver's socket id
+    const receiverSiD = Array.from(connectedUsers.entries()).find(
+      ([_, userId]) => userId === receiverId
+    )?.[0];
+    
+    if(receiverSiD) {
+      // send the msg to receiver
+      io.to(receiverSiD).emit("personal message", message);
+    }
+
+    
   });
 
   // listen for group message
@@ -65,6 +90,11 @@ io.on("connection", (socket) => {
   // handle disconnection
   socket.on("disconnect", () => {
     console.log("A user disconnected: ", socket.id);
+    connectedUsers.delete(socket.id);
+
+
+    io.emit('update user list', Array.from(connectedUsers.values()));
+    // the above line will send the updated user list to all clients
   });
 });
 
