@@ -22,7 +22,7 @@ exports.login = async (req, res)=>{
             throw new Error('Invalid credentials');
         }
         const token = jwt.sign({userId: user._id}, 'secret_key', {expiresIn: '1h'});
-        res.json({token, userId: user._id});
+        res.json({token, userId: user._id, username: user.username});
     } catch (error) {
         res.status(400).json({error: error.message});
     }
